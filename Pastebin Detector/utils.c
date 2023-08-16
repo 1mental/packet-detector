@@ -70,7 +70,10 @@ char GetAllAdapters(AdapterInfo* info)
 		return ADAPTER_GATHER_ERROR;
 	}
 
-	AdapterInfo allAdapters[30];
+	AdapterInfo* allAdapters = (AdapterInfo*)calloc(MAXMIUM_ADAPTERS_COUNT, sizeof(AdapterInfo));
+
+	if (allAdapters == NULL)
+		return ALLOCATION_FAULT;
 	int counter = -1;
 	for (pcap_if_t* dev = alldevs; dev != NULL; dev = dev->next) {
 
@@ -122,6 +125,7 @@ char GetAllAdapters(AdapterInfo* info)
 
 	memcpy(info, &allAdapters[choice], sizeof(AdapterInfo));
 	pcap_freealldevs(alldevs);
+	free((void*)allAdapters);
 	return SUCCESS;
 }
 
