@@ -1,5 +1,5 @@
 #include<stdio.h>
-#include "utils.h"
+
 #include "sniffer.h"
 #include "pcap.h"
 #include <Shlwapi.h>
@@ -66,7 +66,8 @@ int main(int argc, char** argv)
 	printf("\n\n\t\t Mental Pastebin Detector 1.0.0 Alpha\n\t\t- Still under Development.\n\n");
 
 
-	if (InitArgs(argc,argv) == INVALID_ARGS)
+	
+	if (InitArgs(argc, argv) == INVALID_ARGS)
 	{
 		printf("[+] Invaild args input...\n");
 		system("pause");
@@ -74,22 +75,27 @@ int main(int argc, char** argv)
 	}
 	
 
-
 	
 	AdapterInfo* info = (AdapterInfo*)calloc(1, sizeof(AdapterInfo));
-
-	InitAdapterInfo(info);
-
-	if (GetDefaultNICAdapter(info) == ADAPTER_GATHER_ERROR)
+	if (info == NULL)
 	{
-		printf("[+] Can't get the default adapter. exiting...\n\n");
+		printf("Error: Cannot Allocate Memory for the adapter info\n");
 		system("pause");
 		return -1;
 	}
-	printf("---------- Device Info ----------\n\n");
+
+	printf("[+] Choose an Adapter:\n\n");
+	if (GetAllAdapters(info) != SUCCESS)
+	{
+		printf("Error: Cannot choose an Adapter\n");
+		system("pause");
+		return -1;
+	}
+
+
+	printf("---------- Device Info (Used) ----------\n\n");
 	printf("Name: %s\n", info->Name);
-	printf("Gateway: %s\n", info->Gateway);
-	printf("IP: %s\n\n", info->IP);
+	printf("Description: %s\n\n", info->Description);
 
 	printf("[+] Enter the host name: ");
 	char host[MAXMIUM_FILTER_LENGTH];
@@ -190,5 +196,6 @@ int main(int argc, char** argv)
 
 	DisplayCollection(colletion);
 	DeleteCollection(colletion);
+	free(info);
 	system("pause");
 }
