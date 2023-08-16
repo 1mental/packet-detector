@@ -27,14 +27,14 @@ void InitAdapterInfo(AdapterInfo* info)
 
 
 
-BOOLEAN LaunchEXE(char* exepath, PROCESS* ProcessInfo)
+char LaunchEXEW(wchar_t* exepath, PROCESS* ProcessInfo)
 {
 	if (exepath == NULL)
 		return NULL_PARAMTER;
 
 	PROCESS_INFORMATION ProcessInformation;
 	STARTUPINFOA startupInfo = { sizeof(startupInfo) };
-	if (CreateProcessA(
+	if (CreateProcessW(
 		exepath,
 		NULL,
 		NULL,
@@ -45,7 +45,7 @@ BOOLEAN LaunchEXE(char* exepath, PROCESS* ProcessInfo)
 		NULL,
 		&startupInfo,
 		&ProcessInformation
-	))
+	) != 0)
 	{
 		ProcessInfo->PID = ProcessInformation.dwProcessId;
 		ProcessInfo->ProcessHandle = ProcessInformation.hProcess;
