@@ -13,16 +13,16 @@
 #define PROCESS_CREATION_ERROR 0x11
 #define ALLOCATION_FAULT 0x300
 #define PORT_GATHER_ERROR 0x270
-
+#define MAXIMUM_DESCRIPTION_LENGTH 500
 #include "utils.h"
 
 
 // Structures
 
 typedef struct {
+    unsigned char ID;
 	char* Name;
-    char* IP;
-    char* Gateway;
+    char* Description;
 }AdapterInfo;
 
 typedef struct {
@@ -34,17 +34,12 @@ typedef struct {
 
 // Functions
 
-// A Function to get the default Network Adapter.
-char GetDefaultNICAdapter(AdapterInfo* info);
-
+// Adapters Function
 void InitAdapterInfo(AdapterInfo* info);
+char GetAllAdapters(AdapterInfo* info);
 
 // A Function to create a process and launch it
 char LaunchEXE(char* exepath, PROCESS* ProcessInfo);
-
-
-// Combine the device name with its path
-void ValidateDeviceName(AdapterInfo* info);
 
 
 
