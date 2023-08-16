@@ -9,19 +9,20 @@
 #define INVALID_ARGS 1
 
 
+char LaunchEXEW(wchar_t* exepath, PROCESS* ProcessInfo);
 
 PacketCollection* colletion;
 
 Sniffer* pcapHandle;
 unsigned int packetscount;
 
-char InitArgs(int argc, char** argv)
+char InitArgs(int argc, wchar_t** argv)
 {
 
 	if (argc != 2)
 		return INVALID_ARGS;
 
-	if (PathFileExistsA(argv[1]) == FALSE)
+	if (PathFileExistsW(argv[1]) == FALSE)
 		return INVALID_ARGS;
 	return SUCCESS;
 
@@ -59,14 +60,13 @@ void packet_handler(u_char* user_data, const struct pcap_pkthdr* packet_header, 
 
 
 
-int main(int argc, char** argv)
+int wmain(int argc, wchar_t** argv)
 {
 	
 	
 	printf("\n\n\t\t Mental Pastebin Detector 1.0.0 Alpha\n\t\t- Still under Development.\n\n");
 
 
-	
 	if (InitArgs(argc, argv) == INVALID_ARGS)
 	{
 		printf("[+] Invaild args input...\n");
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 	}
 	
 
-	
+
 	AdapterInfo* info = (AdapterInfo*)calloc(1, sizeof(AdapterInfo));
 	if (info == NULL)
 	{
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
 
 
 	PROCESS proc;
-	if (LaunchEXE(argv[1], &proc) != SUCCESS)
+	if (LaunchEXEW(argv[1], &proc) != SUCCESS)
 	{
 		printf("[-] Can't create a process... exiting..\n");
 		system("pause");
