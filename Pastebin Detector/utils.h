@@ -15,7 +15,7 @@
 #define PORT_GATHER_ERROR 0x270
 #define MAXIMUM_DESCRIPTION_LENGTH 500
 #define MAXMIUM_ADAPTERS_COUNT 100
-#include "utils.h"
+
 
 
 // Structures
@@ -38,9 +38,6 @@ typedef struct {
 // Adapters Function
 void InitAdapterInfo(AdapterInfo* info);
 char GetAllAdapters(AdapterInfo* info);
-
-// A Function to create a process and launch it
-char LaunchEXE(char* exepath, PROCESS* ProcessInfo);
 
 
 
