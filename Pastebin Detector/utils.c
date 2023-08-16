@@ -1,5 +1,6 @@
 
 // Checking if windows.h is included or not
+#include "pcap.h"
 #ifndef _WINDOWS_
 #include <windows.h>
 #endif
@@ -17,65 +18,14 @@
 
 
 
-
-BOOLEAN GetDefaultNICAdapter(AdapterInfo* info)
-{
-	if (info == NULL)
-		return NULL_ADAPTER_INFO;
-
-	PIP_ADAPTER_INFO pAdapterInfo;
-
-	ULONG ulOutBuflen = 0;
-
-	DWORD dwRetVal;
-
-	pAdapterInfo = (PIP_ADAPTER_INFO*)malloc(sizeof(IP_ADAPTER_INFO));
-
-	if (GetAdaptersInfo(pAdapterInfo, &ulOutBuflen) == ERROR_BUFFER_OVERFLOW) { 
-		free(pAdapterInfo);
-		pAdapterInfo = (IP_ADAPTER_INFO*)malloc(ulOutBuflen); 
-	}
-
-	dwRetVal = GetAdaptersInfo(pAdapterInfo, &ulOutBuflen);
-	if (dwRetVal != NO_ERROR) {
-		free(pAdapterInfo);
-		return ADAPTER_GATHER_ERROR;
-	}
-
-
-	if (pAdapterInfo->GatewayList.IpAddress.String[0] != '\0')
-	{
-		memcpy(info->Name, pAdapterInfo->AdapterName, DEFAULT_ADAPTER_NAME_LENGTH);
-		memcpy(info->IP, pAdapterInfo->IpAddressList.IpAddress.String, IP_DEFAUlT_LENGTH);
-		memcpy(info->Gateway, pAdapterInfo->GatewayList.IpAddress.String, IP_DEFAUlT_LENGTH);
-
-		ValidateDeviceName(info);
-		free(pAdapterInfo);
-		return ADAPTER_GATHER_SUCCESS;
-	}
-	else {
-			free(pAdapterInfo);
-		return ADAPTER_GATHER_ERROR;
-	}
-
-}
-
-
 void InitAdapterInfo(AdapterInfo* info)
 {
 
 	info->Name = (char*)calloc(DEFAULT_ADAPTER_NAME_LENGTH,sizeof(char));
-	info->IP = (char*)calloc(IP_DEFAUlT_LENGTH,sizeof(char));
-	info->Gateway = (char*)calloc(IP_DEFAUlT_LENGTH,sizeof(char));
+	info->Description = (char*)calloc(MAXIMUM_DESCRIPTION_LENGTH,sizeof(char));
 }
 
 
-void ValidateDeviceName(AdapterInfo* info)
-{
-	char temp[DEFAULT_ADAPTER_NAME_LENGTH] = "\\Device\\NPF_";
-    strcat_s(temp, sizeof(temp), info->Name);
-	memcpy(info->Name, temp, DEFAULT_ADAPTER_NAME_LENGTH);
-}
 
 BOOLEAN LaunchEXE(char* exepath, PROCESS* ProcessInfo)
 {
@@ -108,4 +58,70 @@ BOOLEAN LaunchEXE(char* exepath, PROCESS* ProcessInfo)
 	return PROCESS_CREATION_ERROR;
 }
 
+
+
+char GetAllAdapters(AdapterInfo* info)
+{
+	pcap_if_t* alldevs;
+	char errbuf[PCAP_ERRBUF_SIZE];
+
+	if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1) {
+		fprintf(stderr, "Error finding adapters: %s\n", errbuf);
+		return ADAPTER_GATHER_ERROR;
+	}
+
+	AdapterInfo allAdapters[30];
+	int counter = -1;
+	for (pcap_if_t* dev = alldevs; dev != NULL; dev = dev->next) {
+
+		counter++;
+
+		InitAdapterInfo(&(allAdapters[counter]));
+		allAdapters[counter].ID = counter;
+		memcpy(allAdapters[counter].Name, dev->name, DEFAULT_ADAPTER_NAME_LENGTH);
+		if (dev->description) 
+			memcpy(allAdapters[counter].Description, dev->description, strlen(dev->description));
+		else 
+			memcpy(allAdapters[counter].Description, "NULL Description", MAXIMUM_DESCRIPTION_LENGTH);
+		printf("Adapter ID : %d\n", counter);
+		printf("Adapter name: %s\n", allAdapters[counter].Name);
+		printf("Adapter Description: %s\n", allAdapters[counter].Description);
+
+		printf("\n");
+	}
+
+
+	// Taking input from the user
+
+	char input[50];
+	int choice;
+	InputLabel:
+	printf("Enter the Adapter ID: ");
+	if (fgets(input,sizeof(input),stdin) == NULL)
+	{
+		printf("Can't take the user input.\n");
+		goto InputLabel;
+	}
+
+	input[strcspn(input, "\n")] = '\0';
+
+	int length = strlen(input);
+	for (int i = 0; i < length; i++) {
+		if (input[i] < '0' || input[i] > '9') {
+			printf("Invalid input: Not an integer.\n");
+			goto InputLabel;
+		}
+	}
+
+	choice = atoi(input);
+	 if (choice > counter || choice < 0)
+	{
+		printf("Invalid ID Input!\n");
+		goto InputLabel;
+	}
+
+	memcpy(info, &allAdapters[choice], sizeof(AdapterInfo));
+	pcap_freealldevs(alldevs);
+	return SUCCESS;
+}
 
